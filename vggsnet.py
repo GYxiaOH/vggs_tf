@@ -1,24 +1,10 @@
-"""This is an TensorFLow implementation of AlexNet by Alex Krizhevsky at all.
+"""This is an TensorFLow implementation of vggs.
 
-Paper:
-(http://papers.nips.cc/paper/4824-imagenet-classification-with-deep-convolutional-neural-networks.pdf)
+you can see the detail about vggs in 
+https://gist.github.com/ksimonyan/fd8800eeb36e276cd6f9#file-readme-md
 
-Explanation can be found in my blog post:
-https://kratzert.github.io/2017/02/24/finetuning-alexnet-with-tensorflow.html
-
-This script enables finetuning AlexNet on any given Dataset with any number of
-classes. The structure of this script is strongly inspired by the fast.ai
-Deep Learning class by Jeremy Howard and Rachel Thomas, especially their vgg16
-finetuning script:
-Link:
-- https://github.com/fastai/courses/blob/master/deeplearning1/nbs/vgg16.py
-
-
-The pretrained weights can be downloaded here and should be placed in the same
-folder as this file:
-- http://www.cs.toronto.edu/~guerzhoy/tf_alexnet/
-
-@author: Frederik Kratzert (contact: f.kratzert(at)gmail.com)
+Author: GYxiaOH
+contact: zhhy1994226@163.com
 """
 
 import tensorflow as tf
@@ -37,7 +23,7 @@ class VggsNet(object):
             keep_prob: Dropout probability.
             num_classes: Number of classes in the dataset.
             skip_layer: List of names of the layer, that get trained from
-                scratch
+                scratch,i change it to make weights can be trained
             weights_path: Complete path to the pretrained weight file, if it
                 isn't in the same folder as this code
         """

@@ -8,7 +8,7 @@ post, which you can find here:
 
 
 Author: GYxiaOH
-contact: f.kratzert(at)gmail.com
+contact: zhhy1994226@163.com
 """
 
 import os
@@ -29,25 +29,29 @@ Configuration Part.
 # Path to the textfiles for the trainings and validation set
 train_file = './sourcetrainlmdb.txt'
 val_file = './sourceval.txt'
+test_file = './testlmdb.txt'
 
 # Learning paramsi
 global_step = tf.Variable(0, trainable=False)
 learning_rate = tf.train.exponential_decay(0.01, global_step, 5000, 0.9, staircase=True)
 # learning_rate = 0.01 #0.01
-num_epochs = 100
+num_epochs = 10
 batch_size = 128
 
-#display and validation
-display_step = 20
+
+# How often we want to write the tf.summary data to disk
+display_step = 10
+
+# How often we want to write
 validation_epoch = 3
+save_epoch = 5
 
 # Network params
 dropout_rate = 0.5
 num_classes = 129
 train_layers = ['fc8'] # fc8 7 6
 
-# How often we want to write the tf.summary data to disk
-display_step = 10
+
 
 # Path for tf.summary.FileWriter and to store model checkpoints
 filewriter_path = "./tensorboard"
@@ -74,6 +78,12 @@ with tf.device('/cpu:0'):
                                   num_classes=num_classes,
                                   shuffle=False)
 
+    test_data = ImageDataGenerator(test_file,
+                                  mode='inference',
+                                  batch_size=batch_size,
+                                  num_classes=num_classes,
+                                  shuffle=False)
+
     # create an reinitializable iterator given the dataset structure
     iterator = Iterator.from_structure(tr_data.data.output_types,
                                        tr_data.data.output_shapes)
@@ -82,6 +92,7 @@ with tf.device('/cpu:0'):
 # Ops for initializing the two different iterators
 training_init_op = iterator.make_initializer(tr_data.data)
 validation_init_op = iterator.make_initializer(val_data.data)
+test_init_op = iterator.make_initializer(test_data.data)
 
 # TF placeholder for graph input and output
 x = tf.placeholder(tf.float32, [batch_size, 224, 224, 3])
@@ -144,7 +155,7 @@ saver = tf.train.Saver()
 # Get the number of training/validation steps per epoch
 train_batches_per_epoch = int(np.floor(tr_data.data_size/batch_size))
 val_batches_per_epoch = int(np.floor(val_data.data_size / batch_size))
-
+test_batches_per_epoch = int(np.floor(test_data.data_size / batch_size))
 # Start Tensorflow session
 with tf.Session() as sess:
 
@@ -210,12 +221,36 @@ with tf.Session() as sess:
             print("Validation, Epoch " + str(epoch + 1) + ", Loss " + "{:.4f}".format(val_loss) + ", target Accuracy= " + \
                   "{:.4f}".format(val_acc))
 
+
+        if (epoch + 1) % save_epoch == 0 or (epoch + 1) == num_epochs:
             print("{} Saving checkpoint of model...".format(datetime.now()))
 
             # save checkpoint of the model
             checkpoint_name = os.path.join(checkpoint_path,
-                                           'model_epoch'+str(epoch+1)+'.ckpt')
+                                           'model_epoch' + str(epoch + 1) + '.ckpt')
             save_path = saver.save(sess, checkpoint_name)
 
             print("{} Model checkpoint saved at {}".format(datetime.now(),
                                                            checkpoint_name))
+
+    print("{} Start test".format(datetime.now()))
+    sess.run(test_init_op)
+    test_acc = 0.
+    test_count = 0
+    test_loss = 0.
+    for _ in range(test_batches_per_epoch):
+        img_batch, label_batch = sess.run(next_batch)
+        vl, acc = sess.run([loss, accuracy], feed_dict={x: img_batch,
+                                                        y: label_batch,
+                                                        keep_prob: 1.})
+        test_acc += acc
+        test_count += 1
+        test_loss += vl
+    test_acc /= test_count
+    test_loss /= test_count
+    print("Test, Epoch " + str(epoch + 1) + ", Loss " + "{:.4f}".format(test_loss) + ", target Accuracy= " + \
+          "{:.4f}".format(test_acc))
+
+
+
+
