@@ -49,7 +49,9 @@ save_epoch = 5
 # Network params
 dropout_rate = 0.5
 num_classes = 129
-train_layers = ['fc8'] # fc8 7 6
+skip_layers = ['fc8'] # fc8 7 6
+train_layers = ['conv6_1000','fc7_1000','fc8_1000','fc9']
+
 
 
 
@@ -100,7 +102,7 @@ y = tf.placeholder(tf.float32, [batch_size, num_classes])
 keep_prob = tf.placeholder(tf.float32)
 
 # Initialize model
-model = VggsNet(x, keep_prob, num_classes, train_layers,'../DeViSE-master/prevgg.npy')
+model = VggsNet(x, keep_prob, num_classes, skip_layers,'../DeViSE-master/prevgg.npy')
 
 # Link variable to model output
 score = model.fc8
